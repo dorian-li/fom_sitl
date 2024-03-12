@@ -56,6 +56,30 @@ class Vehicle:
         self.master.recv_match(condition="VFR_HUD.groundspeed>3", blocking=True)
         print("takeoff complete")
 
+    def climb(self, alt):
+        print(f"climbing to {alt=} meters")
+        self.set_mode("GUIDED")
+        self.master.mav.mission_item_send(
+            self.master.target_system,
+            self.master.target_component,
+            0,
+            3,
+            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            alt,
+        )
+        self.master.recv_match(
+            condition=f"GLOBAL_POSITION_INT.alt>{alt*1000}", blocking=True
+        )  # alt unit: mm
+        print(f"climbed to {alt=} meters")
+
     def _set_attitude_target(self, roll, pitch, yaw):
         self.master.mav.set_attitude_target_send(
             # int(1e3 * (time.time() - self.boot_time)),  # ms since boot
